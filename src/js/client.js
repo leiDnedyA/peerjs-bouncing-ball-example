@@ -1,3 +1,15 @@
+
+
+/**
+ * TODO: Refactor code to look like implementation 
+ * found here:
+ * 
+ * https://docs.racket-lang.org/teachpack/2htdpuniverse.html
+ * (ctrl + F search for "Designing the Ball World")
+ * 
+ * /
+
+
 /**
  * Get NAME from query params and set it to NAME, or 
  * redirect user to homepage to generate a new url with 
@@ -55,14 +67,20 @@ function move() {
 }
 
 // Draws image to canvas based on world state
-function draw() {
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+function draw(name) {
+    return () => {
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
-    if (WORLD.isActive) {
-        fillCircle(WIDTH / 4 - RADIUS / 4, WORLD.posy, RADIUS, "blue");
+        if (WORLD.isActive) {
+            fillCircle(WIDTH / 4 - RADIUS / 4, WORLD.posy, RADIUS, "blue");
+        }
     }
 }
 
+
+function receive(data) {
+
+}
 
 function start() {
 
@@ -76,10 +94,10 @@ function start() {
         const conn = peer.connect("server", { metadata: { name: NAME } });
         conn.on("open", () => { console.log("open") });
         
-        // window.addEventListener("beforeunload", () => {
-        //     alert('window closing')
-        //     conn.close();
-        // })
+        window.addEventListener("beforeunload", () => {
+            alert('window closing')
+            conn.close();
+        })
 
     });
 
@@ -89,6 +107,8 @@ function start() {
     }, 1000 / FPS)
 
 }
+
+
 
 function testStart() {
     WORLD.setActive();

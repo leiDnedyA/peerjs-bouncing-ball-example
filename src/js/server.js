@@ -7,12 +7,10 @@ const peer = new Peer('server', {debug: 0});
 const universeState = [];
 
 peer.on('connection', (conn) => {
+    
     const name = conn.metadata.name;
     console.log(`${name} connected.`)
-
     universeState.push(conn);
-
-    console.log(universeState)
 
     conn.on('data', (data) => {
         console.log(data);
@@ -30,13 +28,9 @@ peer.on('connection', (conn) => {
     }
     
     conn.on('close', removeConnection)
-
-    conn.peerConnection.onclose = removeConnection;
-
     conn.peerConnection.addEventListener(
         "connectionstatechange",
         (e) => {
-            console.log(`state: ${conn.peerConnection.connectionState}`);
             switch(conn.peerConnection.connectionState) {
                 case "failed":
                 case "closed":
@@ -47,8 +41,4 @@ peer.on('connection', (conn) => {
                     break;
             }
         });
-
-    conn.on('error', () => {
-        console.log('error triggered');
-    })
 });
