@@ -22,12 +22,19 @@ function universe(initState, options){
 
     var universeState = initState;
 
-    const peer = new Peer('server', { debug: 0 });
+    const debugOptions = {
+        noLogs: 0,
+        logErrors: 1,
+        logErrorsAndWarnings: 2,
+        logAll: 3
+    }
+
+    const peer = new Peer('server', { debug: debugOptions.noLogs });
 
     peer.on('open', () => {
         peer.on('connection', (conn) => {
-
             const name = conn.metadata.name;
+
             console.log(`${name} connected.`);
 
             conn.on('open', () => {
@@ -39,6 +46,14 @@ function universe(initState, options){
                 universeState = handleUFuncResult(onMessage(universeState, conn, data));
             });
 
+            
+            /**
+             * TODO: Figure out a way of implementing this
+             *       that doesn't assume the universe state
+             *       will be a list.
+             * ref: https://docs.racket-lang.org/teachpack/2htdpuniverse.html#%28form._%28%28lib._2htdp%2Funiverse..rkt%29._on-disconnect%29%29
+             * 
+             */
             const removeConnection = () => {
                 console.log(`${name} disconnected.`);
 
@@ -50,7 +65,10 @@ function universe(initState, options){
                 }
             }
 
-            conn.on('close', removeConnection)
+            // Handles connection close signaled by client (best case)
+            conn.on('close', removeConnection);
+
+            // Handles connection close when client goes missing (worst case)
             conn.peerConnection.addEventListener(
                 "connectionstatechange",
                 (e) => {
