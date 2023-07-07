@@ -2,25 +2,33 @@ const peer = new Peer('server', { debug: 0 });
 
 /**
  * List of connections
- * First element in list -> current ball holder
- */
+ * First element in list = current ball holder
+*/
 var universeState = [];
 
 function makeMail(iworld, message) {
     return {iworld: iworld, message: message};
 }
 
-/**
- * 
- * @param {*} u curr universe state
- * @param {*} iw iw to add
- * 
- * @returns [<next universe state>, <mails>, <worlds to remove>]
- * 
- */
+function handleUFuncResult(result) {
+    const [univState, mails, toRemove] = result;
+
+    for (i in mails) {
+        mail = mails[i];
+        mail.iworld.send(mail.message);
+    }
+
+    // implement solution for removing worlds
+
+    return univState;
+
+}
+
 function addWorld(u, iw) {
     const nextU = u.concat(iw);
-    return [nextU, [makeMail(nextU[0], "it-is-your-turn")], []]
+    const mails = [makeMail(nextU[0], "it-is-your-turn")];
+    const toRemove = [];
+    return [nextU, mails, toRemove];
 }
 
 function nextBall(u, iw, m) {
@@ -33,23 +41,6 @@ function nextBall(u, iw, m) {
     return [u, [], []];
 }
 
-/**
- * Handles input from universe func,
- * returns universe state
- */
-function parseUniverseResult(result) {
-    const [us, mails, toRemove] = result;
-
-    for (i in mails) {
-        mail = mails[i];
-        mail.iworld.send(mail.message);
-    }
-
-    // implement solution for removing worlds
-
-    return us;
-
-}
 
 peer.on('open', () => {
     peer.on('connection', (conn) => {
@@ -58,12 +49,12 @@ peer.on('open', () => {
         console.log(`${name} connected.`);
 
         conn.on('open', () => {
-            universeState = parseUniverseResult(addWorld(universeState, conn));
+            universeState = handleUFuncResult(addWorld(universeState, conn));
         })
 
         conn.on('data', (data) => {
-            // console.log(data);
-            universeState = parseUniverseResult(nextBall(universeState, conn, data));
+            console.log(`${name}: ${data}`);
+            universeState = handleUFuncResult(nextBall(universeState, conn, data));
         });
 
         const removeConnection = () => {
