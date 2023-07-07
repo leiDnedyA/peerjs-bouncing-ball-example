@@ -32,7 +32,7 @@ const ctx = canvas.getContext('2d');
 canvas.setAttribute("style", "border-style:solid; border-width:1px;");
 document.body.appendChild(canvas);
 
-const SPEED = 3;
+const SPEED = 5;
 const RADIUS = 10;
 const [WIDTH, HEIGHT] = [800, 400];
 
@@ -55,13 +55,16 @@ const WORLD = {
     setInactive: function () { this.isActive = false; this.posy = HEIGHT + RADIUS * 2 }
 }
 
+var ws = "RESTING";
+
 // Returns next world state
-function move() {
-    if (WORLD.isActive) {
-        if (WORLD.posy > - (RADIUS * 2)) {
-            WORLD.posy -= SPEED;
+// May return a list of structure [<next ws>, <message>]
+function move(ws) {
+    if (typeof ws == 'number') {
+        if (ws > - (RADIUS * 2)) {
+            return ws - SPEED;
         } else {
-            WORLD.setInactive();
+            return ["RESTING", "done"]
         }
     }
 }
@@ -71,15 +74,18 @@ function draw(name) {
     return () => {
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
-        if (WORLD.isActive) {
-            fillCircle(WIDTH / 4 - RADIUS / 4, WORLD.posy, RADIUS, "blue");
+        if (typeof ws == 'number') {
+            fillCircle(WIDTH / 4 - RADIUS / 4, ws, RADIUS, "blue");
         }
     }
 }
 
 
-function receive(data) {
-
+function receive(w, m) {
+    if (!(typeof w == "number")) {
+        return HEIGHT;
+    }
+    return w;
 }
 
 function start() {
@@ -92,26 +98,41 @@ function start() {
     const peer = new Peer();
     peer.on('open', () => {
         const conn = peer.connect("server", { metadata: { name: NAME } });
+        
         conn.on("open", () => { console.log("open") });
+        
+        conn.on("data", (data) => {
+            console.log(data);
+            ws = receive(ws, data);
+        })
         
         window.addEventListener("beforeunload", () => {
             alert('window closing')
             conn.close();
         })
 
+        setInterval(() => {
+            
+            const moveResult = move(ws);
+            
+            if (Array.isArray(moveResult)) {
+                ws = moveResult[0];
+                conn.send(moveResult[1]);
+            } else {
+                ws = moveResult;
+            }
+
+            draw(NAME)();
+        }, 1000 / FPS)
     });
 
-    setInterval(() => {
-        move();
-        draw();
-    }, 1000 / FPS)
 
 }
 
 
 
 function testStart() {
-    WORLD.setActive();
+    ws = HEIGHT;
     start();
 }
 
