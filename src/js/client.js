@@ -21,32 +21,40 @@ const RADIUS = 10;
 
 var worldState = "RESTING";
 
-// Returns next world state
-// May return a list of structure [<next ws>, <message>]
 function move(ws) {
-    if (typeof ws == 'number') {
-        if (ws > - (RADIUS * 2)) {
-            return ws - SPEED;
-        } else {
+    const isResting = typeof ws == 'number';
+    
+    if (!isResting) {
+        const ballFinished = ws > - (RADIUS * 2);
+        if (ballFinished) {
             return ["RESTING", "done"]
+        } else {
+            return ws - SPEED;
         }
     }
+
+    return ws;
 }
 
 function draw(name) {
     return (ws) => {
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
-        if (typeof ws == 'number') {
+        const worldIsActive = typeof ws == 'number';
+        
+        if (worldIsActive) {
             fillCircle(WIDTH / 4 - RADIUS / 4, ws, RADIUS, "blue");
         }
     }
 }
 
 function receive(w, m) {
-    if (!(typeof w == "number")) {
+    const worldIsActive = typeof w == "number"; 
+    
+    if (!worldIsActive) {
         return HEIGHT;
     }
+    
     return w;
 }
 
