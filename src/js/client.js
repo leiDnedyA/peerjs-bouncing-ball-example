@@ -19,13 +19,11 @@ if (!NAME) {
 const SPEED = 5;
 const RADIUS = 10;
 
-var worldState = "RESTING";
-
 function move(ws) {
-    const isResting = typeof ws == 'number';
+    const isActive = typeof ws == 'number';
     
-    if (!isResting) {
-        const ballFinished = ws > - (RADIUS * 2);
+    if (isActive) {
+        const ballFinished = ws <= - (RADIUS * 2);
         if (ballFinished) {
             return ["RESTING", "done"]
         } else {
@@ -58,4 +56,5 @@ function receive(w, m) {
     return w;
 }
 
-bigBang({toDraw: draw(NAME), onTick: move, onReceive: receive});
+const initState = "RESTING";
+bigBang(initState, {toDraw: draw(NAME), onTick: move, onReceive: receive, name: NAME});

@@ -22,7 +22,9 @@ function fillCircle(x, y, radius, color) {
 }
 
 function handleWFuncResult(result, conn) {
-    if (!Array.isArray(result)) {
+    const isBundle = Array.isArray(result);
+
+    if (!isBundle) {
         return result;
     }
 
@@ -36,10 +38,11 @@ function handleWFuncResult(result, conn) {
 
 }
 
-function bigBang(options) {
+function bigBang(initState, options) {
     const {toDraw, onReceive, onTick, name} = options;
+    var worldState = initState;
 
-    console.log('starting client...')
+    console.log('starting client...');
 
     const peer = new Peer();
 
